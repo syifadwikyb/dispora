@@ -21,7 +21,7 @@ if (!isset($_SESSION['user_id'])) {
 
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #343a40;">
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top" style="background-color: #343a40;">
         <div class="container-fluid">
             <a class="navbar-brand" href="/ams/index.php">
                 <img src="https://via.placeholder.com/120x40.png?text=LOGO" alt="Logo">
