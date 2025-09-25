@@ -17,6 +17,73 @@ if (!isset($_SESSION['user_id'])) {
     <title>Sistem Manajemen Surat</title>
     <link href="/ams/assets/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        /* CSS untuk mengatur tampilan saat akan dicetak */
+        @media print {
+
+            /* 1. Atur halaman ke Portrait dan atur margin */
+            @page {
+                size: A4 portrait;
+                /* Mengatur orientasi menjadi Portrait */
+                margin: 1.5cm;
+                /* Atur margin halaman */
+            }
+
+            body {
+                background-color: #fff;
+                /* 2. Perkecil font secara drastis agar tabel muat */
+                font-size: 9pt;
+            }
+
+            /* 3. Sembunyikan elemen non-cetak (area merah, tombol, dll) */
+            #mainNav,
+            #filter-panel,
+            .breadcrumb,
+            footer, header {
+                display: none !important;
+            }
+
+            .card {
+                border: none !important;
+                box-shadow: none !important;
+            }
+
+            #main-content {
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            /* 4. Buat tabel lebih ramping agar muat (SANGAT PENTING) */
+            .table {
+                width: 100%;
+            }
+
+            .table th,
+            .table td {
+                /* Perkecil padding di dalam sel seminimal mungkin */
+                padding: 3px 5px;
+                /* Paksa teks untuk pindah baris jika kolom terlalu sempit */
+                word-wrap: break-word;
+            }
+
+            /* Atur ulang judul agar tetap rapi */
+            .card-header {
+                border-bottom: 2px solid #000;
+                padding-bottom: 10px;
+                margin-bottom: 15px;
+            }
+
+            .card-header::before {
+                content: "Laporan Buku Agenda Surat Masuk";
+                font-size: 16pt;
+                font-weight: bold;
+                text-align: center;
+                display: block;
+                margin-bottom: 0;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -46,8 +113,8 @@ if (!isset($_SESSION['user_id'])) {
                             Buku Agenda
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="agendaDropdown">
-                            <li><a class="dropdown-item" href="/ams/buku_agenda/surat_masuk.php">Surat Masuk</a></li>
-                            <li><a class="dropdown-item" href="/ams/buku_agenda/surat_keluar.php">Surat Keluar</a></li>
+                            <li><a class="dropdown-item" href="/ams/buku_agenda/surat_masuk/screen_surat_masuk.php">Surat Masuk</a></li>
+                            <li><a class="dropdown-item" href="/ams/buku_agenda/surat_keluar/screen_surat_keluar.php">Surat Keluar</a></li>
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
@@ -55,11 +122,11 @@ if (!isset($_SESSION['user_id'])) {
                             Galeri File
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="galeriDropdown">
-                            <li><a class="dropdown-item" href="/ams/galeri_file/surat_masuk.php">Surat Masuk</a></li>
-                            <li><a class="dropdown-item" href="/ams/galeri_file/surat_keluar.php">Surat Keluar</a></li>
+                            <li><a class="dropdown-item" href="/ams/galeri_file/surat_masuk/screen_surat_masuk.php">Surat Masuk</a></li>
+                            <li><a class="dropdown-item" href="/ams/galeri_file/surat_keluar/screen_surat_keluar.php">Surat Keluar</a></li>
                         </ul>
                     </li>
-                    <li class="nav-item"><a class="nav-link" href="/ams/pages/referensi.php">Referensi</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/ams/referensi/screen_referensi.php">Referensi</a></li>
                     <li class="nav-item"><a class="nav-link" href="/ams/pages/pengaturan.php">Pengaturan</a></li>
                 </ul>
                 <div class="d-flex">
@@ -84,3 +151,4 @@ if (!isset($_SESSION['user_id'])) {
     </nav>
 
     <main class="container mt-4">
+</body>
