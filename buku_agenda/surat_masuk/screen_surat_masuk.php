@@ -29,7 +29,7 @@ $nama_pengelola = $_SESSION['nama_lengkap'] ?? 'User';
     </ol>
 
     <div class="card mb-4" id="filter-panel">
-        <div class="card-header bg-light">
+        <div class="card-header bg-primary text-white">
             <i class="bi bi-filter me-1"></i>
             <b>Filter Laporan & Aksi</b>
         </div>
@@ -65,7 +65,7 @@ $nama_pengelola = $_SESSION['nama_lengkap'] ?? 'User';
                             <th>Keterangan</th>
                         </tr>
                     </thead>
-                    <tbody class="text-center ">
+                    <tbody class="text-center">
                         <?php if (empty($agendas)): ?>
                             <tr>
                                 <td colspan="10">Tidak ada data untuk periode yang dipilih.</td>

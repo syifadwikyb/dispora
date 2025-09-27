@@ -6,21 +6,50 @@ require_once __DIR__ . '/../config/database.php';
 $sukses = $_GET['sukses'] ?? null;
 $gagal = $_GET['gagal'] ?? null;
 
-// Logika Pencarian
+// ===================================================================
+// ## BLOK PHP YANG DIPERBAIKI UNTUK PAGINASI ##
+// ===================================================================
+
+// 1. Tentukan Limit Data & Halaman Saat Ini
+$limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$offset = ($page - 1) * $limit;
+
+// 2. Logika Pencarian
 $search_keyword = isset($_GET['search']) ? $_GET['search'] : '';
-$sql = "SELECT * FROM klasifikasi_surat";
+$where_clause = "";
 $params = [];
 
 if (!empty($search_keyword)) {
-    $sql .= " WHERE kode LIKE ? OR nama LIKE ? OR uraian LIKE ?";
+    $where_clause = " WHERE kode LIKE ? OR nama LIKE ? OR uraian LIKE ?";
     $like_keyword = '%' . $search_keyword . '%';
     $params = [$like_keyword, $like_keyword, $like_keyword];
 }
-$sql .= " ORDER BY kode ASC";
 
-$stmt = $conn->prepare($sql);
-$stmt->execute($params);
-$klasifikasi_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// 3. Query untuk MENGHITUNG TOTAL DATA (untuk paginasi)
+$sql_total = "SELECT COUNT(*) FROM klasifikasi_surat" . $where_clause;
+$stmt_total = $conn->prepare($sql_total);
+$stmt_total->execute($params);
+$total_rows = $stmt_total->fetchColumn();
+$total_pages = ceil($total_rows / $limit);
+
+// 4. Query UTAMA untuk MENGAMBIL DATA (dengan LIMIT dan OFFSET)
+$sql_data = "SELECT * FROM klasifikasi_surat" . $where_clause . " ORDER BY id DESC LIMIT ? OFFSET ?";
+$stmt_data = $conn->prepare($sql_data);
+
+// Gunakan bindValue() untuk kontrol tipe data yang eksplisit agar tidak error
+$i = 1; // Counter untuk placeholder positional
+// Bind parameter pencarian (sebagai string)
+foreach ($params as $param_value) {
+    $stmt_data->bindValue($i, $param_value, PDO::PARAM_STR);
+    $i++;
+}
+// Bind parameter LIMIT dan OFFSET (sebagai integer)
+$stmt_data->bindValue($i, $limit, PDO::PARAM_INT);
+$stmt_data->bindValue($i + 1, $offset, PDO::PARAM_INT);
+
+$stmt_data->execute();
+$klasifikasi_list = $stmt_data->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <div class="container-fluid px-4">
@@ -28,22 +57,28 @@ $klasifikasi_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <ol class="breadcrumb mb-4">
         <li class="breadcrumb-item"><a href="/ams/index.php">Beranda</a></li>
         <li class="breadcrumb-item active">Klasifikasi Surat</li>
-    </ol>    
+    </ol>
+
+    <?php if ($sukses): ?>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <?= htmlspecialchars($sukses) ?><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
+    <?php if ($gagal): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <?= htmlspecialchars($gagal) ?><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
 
     <div class="card mb-4">
         <div class="card-header bg-primary text-white">
-            <i class="bi bi-envelope-paper-fill me-1"></i>
-            Kontrol & Navigasi
+            <i class="bi bi-search me-1"></i><b>Kontrol & Navigasi</b>
         </div>
         <div class="card-body">
             <div class="row align-items-center">
                 <div class="col-md-4 mb-2 mb-md-0">
-                    <a href="/ams/referensi/tambah_referensi.php" class="btn btn-success me-2">
-                        <i class="bi bi-plus-circle me-1"></i> Tambah Data
-                    </a>
-                    <a href="/ams/referensi/import_referensi.php" class="btn btn-secondary">
-                        <i class="bi bi-box-arrow-up me-1"></i> Import Data
-                    </a>
+                    <a href="tambah_referensi.php" class="btn btn-success me-2"><i class="bi bi-plus-circle me-1"></i> Tambah Data</a>
+                    <a href="import_referensi.php" class="btn btn-secondary"><i class="bi bi-box-arrow-up me-1"></i> Import Data</a>
                 </div>
                 <div class="col-md-8">
                     <form action="" method="get">
@@ -61,16 +96,17 @@ $klasifikasi_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <div class="card-header bg-light">
             <div class="d-flex justify-content-between align-items-center">
                 <span class="fs-6 fw-bold"><i class="bi bi-table me-1"></i> Tabel Data Klasifikasi Surat</span>
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-gear-fill me-2" title="Pengaturan Tampilan"></i>
-                    <select class="form-select form-select-sm" style="width: auto;">
-                        <option selected>10</option>
-                        <option value="1">25</option>
-                        <option value="2">50</option>
-                        <option value="3">100</option>
+                
+                <form action="" method="GET" id="limitForm" class="d-flex align-items-center">
+                    <input type="hidden" name="search" value="<?= htmlspecialchars($search_keyword) ?>">
+                    <select class="form-select form-select-sm" name="limit" onchange="this.form.submit();" style="width: auto;">
+                        <option value="10" <?= $limit == 10 ? 'selected' : '' ?>>10</option>
+                        <option value="25" <?= $limit == 25 ? 'selected' : '' ?>>25</option>
+                        <option value="50" <?= $limit == 50 ? 'selected' : '' ?>>50</option>
+                        <option value="100" <?= $limit == 100 ? 'selected' : '' ?>>100</option>
                     </select>
-                    <span class="ms-2">data per halaman</span>
-                </div>
+                    <span class="ms-2 text-muted">data per halaman</span>
+                </form>
             </div>
         </div>
         <div class="card-body">
@@ -96,12 +132,8 @@ $klasifikasi_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <td class="align-middle"><?= htmlspecialchars($klasifikasi['nama']) ?></td>
                                     <td class="align-middle"><?= htmlspecialchars($klasifikasi['uraian']) ?></td>
                                     <td class="text-center align-middle">
-                                        <a href="edit_referensi.php?id=<?= $klasifikasi['id'] ?>" class="btn btn-warning btn-sm m-1" title="Edit">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </a>
-                                        <a href="hapus_referensi.php?id=<?= $klasifikasi['id'] ?>" class="btn btn-danger btn-sm m-1" title="Delete" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?');">
-                                            <i class="bi bi-trash"></i>
-                                        </a>
+                                        <a href="edit_referensi.php?id=<?= $klasifikasi['id'] ?>" class="btn btn-warning btn-sm m-1" title="Edit"><i class="bi bi-pencil-square"></i></a>
+                                        <a href="hapus_referensi.php?id=<?= $klasifikasi['id'] ?>" class="btn btn-danger btn-sm m-1" title="Delete" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?');"><i class="bi bi-trash"></i></a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -109,6 +141,22 @@ $klasifikasi_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     </tbody>
                 </table>
             </div>
+
+            <nav aria-label="Page navigation" class="mt-3">
+                <ul class="pagination justify-content-end">
+                    <li class="page-item <?= ($page <= 1) ? 'disabled' : '' ?>">
+                        <a class="page-link" href="?page=<?= $page - 1 ?>&limit=<?= $limit ?>&search=<?= urlencode($search_keyword) ?>">Previous</a>
+                    </li>
+                    <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                        <li class="page-item <?= ($i == $page) ? 'active' : '' ?>">
+                            <a class="page-link" href="?page=<?= $i ?>&limit=<?= $limit ?>&search=<?= urlencode($search_keyword) ?>"><?= $i ?></a>
+                        </li>
+                    <?php endfor; ?>
+                    <li class="page-item <?= ($page >= $total_pages) ? 'disabled' : '' ?>">
+                        <a class="page-link" href="?page=<?= $page + 1 ?>&limit=<?= $limit ?>&search=<?= urlencode($search_keyword) ?>">Next</a>
+                    </li>
+                </ul>
+            </nav>
         </div>
     </div>
 </div>

@@ -1,23 +1,41 @@
 <?php
 require_once __DIR__ . '/../../templates/header.php';
+require_once __DIR__ . '/../../config/database.php';
+
+$limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$offset = ($page - 1) * $limit;
 
 $search_keyword = isset($_GET['search']) ? $_GET['search'] : '';
-
-$sql = "SELECT * FROM surat_masuk";
+$where_clause = "";
 $params = [];
 
 if (!empty($search_keyword)) {
-    $sql .= " WHERE nomor_surat LIKE ? OR asal_surat LIKE ? OR isi_ringkas LIKE ? OR nomor_agenda LIKE ?";
-
+    $where_clause = " WHERE nomor_surat LIKE ? OR asal_surat LIKE ? OR isi_ringkas LIKE ? OR nomor_agenda LIKE ?";
     $like_keyword = '%' . $search_keyword . '%';
     $params = [$like_keyword, $like_keyword, $like_keyword, $like_keyword];
 }
 
-$sql .= " ORDER BY tanggal_diterima DESC";
+$sql_total = "SELECT COUNT(*) FROM surat_masuk" . $where_clause;
+$stmt_total = $conn->prepare($sql_total);
+$stmt_total->execute($params);
+$total_rows = $stmt_total->fetchColumn();
+$total_pages = ceil($total_rows / $limit);
 
-$stmt = $conn->prepare($sql);
-$stmt->execute($params);
-$surat_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$sql_data = "SELECT * FROM surat_masuk" . $where_clause . " ORDER BY tanggal_diterima DESC LIMIT ? OFFSET ?";
+$stmt_data = $conn->prepare($sql_data);
+
+$i = 1;
+foreach ($params as $param_value) {
+    $stmt_data->bindValue($i, $param_value, PDO::PARAM_STR);
+    $i++;
+}
+$stmt_data->bindValue($i, $limit, PDO::PARAM_INT);
+$stmt_data->bindValue($i + 1, $offset, PDO::PARAM_INT);
+
+$stmt_data->execute();
+$surat_list = $stmt_data->fetchAll(PDO::FETCH_ASSOC);
+
 ?>
 
 <div class="container-fluid px-4">
@@ -29,8 +47,7 @@ $surat_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <div class="card mb-4">
         <div class="card-header bg-primary text-white">
-            <i class="bi bi-envelope-paper-fill me-1"></i>
-            Kontrol & Navigasi
+            <i class="bi bi-envelope-paper-fill me-1"></i> <b>Kontrol & Navigasi</b>
         </div>
         <div class="card-body">
             <div class="row align-items-center">
@@ -45,7 +62,17 @@ $surat_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <div class="col-md-8">
                     <form action="" method="get">
                         <div class="input-group">
-                            <input type="text" class="form-control" placeholder="Cari berdasarkan no. surat, asal surat..." name="search" value="<?= htmlspecialchars($search_keyword) ?>">
+                            <div class="position-relative flex-grow-1">
+                                <input type="text" class="form-control pe-5" placeholder="Cari berdasarkan no. surat, tujuan..." name="search" value="<?= htmlspecialchars($search_keyword) ?>">
+                                <?php if (!empty($search_keyword)): ?>
+                                    <a href="screen_surat_masuk.php"
+                                        class="btn btn-danger rounded-circle d-flex align-items-center justify-content-center position-absolute"
+                                        title="Hapus Filter"
+                                        style="width: 24px; height: 24px; padding: 0; top: 50%; transform: translateY(-50%); right: 10px; z-index: 100;">
+                                        <i class="bi bi-x-lg text-white"></i>
+                                    </a>
+                                <?php endif; ?>
+                            </div>
                             <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Cari</button>
                         </div>
                     </form>
@@ -58,22 +85,23 @@ $surat_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <div class="card-header bg-light">
             <div class="d-flex justify-content-between align-items-center">
                 <span class="fs-6 fw-bold"><i class="bi bi-table me-1"></i> Tabel Data Surat Masuk</span>
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-gear-fill me-2" title="Pengaturan Tampilan"></i>
-                    <select class="form-select form-select-sm" style="width: auto;">
-                        <option selected>10</option>
-                        <option value="1">25</option>
-                        <option value="2">50</option>
-                        <option value="3">100</option>
+
+                <form action="" method="GET" id="limitForm" class="d-flex align-items-center">
+                    <input type="hidden" name="search" value="<?= htmlspecialchars($search_keyword) ?>">
+                    <select class="form-select form-select-sm" name="limit" onchange="this.form.submit();" style="width: auto;">
+                        <option value="10" <?= $limit == 10 ? 'selected' : '' ?>>10</option>
+                        <option value="25" <?= $limit == 25 ? 'selected' : '' ?>>25</option>
+                        <option value="50" <?= $limit == 50 ? 'selected' : '' ?>>50</option>
+                        <option value="100" <?= $limit == 100 ? 'selected' : '' ?>>100</option>
                     </select>
-                    <span class="ms-2">data per halaman</span>
-                </div>
+                    <span class="ms-2 text-muted">data per halaman</span>
+                </form>
             </div>
         </div>
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-striped table-bordered table-hover">
-                    <thead class="table-primary">
+                    <thead class="table-primary text-center">
                         <tr>
                             <th>No. Agenda & Kode</th>
                             <th>Isi Ringkas & File</th>
@@ -82,7 +110,7 @@ $surat_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <th style="width: 15%;">Tindakan</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="align-middle">
                         <?php if (empty($surat_list)): ?>
                             <tr>
                                 <td colspan="5" class="text-center">
@@ -102,10 +130,9 @@ $surat_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     </td>
                                     <td>
                                         <?= htmlspecialchars($surat['isi_ringkas']) ?>
-
                                         <?php if (!empty($surat['nama_file'])): ?>
                                             <a href="/ams/transaksi_surat/surat_masuk/file_masuk/<?= htmlspecialchars($surat['nama_file']) ?>" class="d-block text-decoration-none" target="_blank" title="Lihat file">
-                                                <i class="bi bi-file-earmark-pdf-fill text-danger"></i> <?= htmlspecialchars($surat['nama_file']) ?>
+                                                <i class="bi bi-file-earmark-text-fill text-secondary"></i> <?= htmlspecialchars($surat['nama_file']) ?>
                                             </a>
                                         <?php endif; ?>
                                     </td>
@@ -114,17 +141,13 @@ $surat_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         <?= htmlspecialchars($surat['nomor_surat']) ?>
                                         <small class="d-block text-muted"><?= date('d M Y', strtotime($surat['tanggal_surat'])) ?></small>
                                     </td>
-                                    <td>
-                                        <a href="edit_surat_masuk.php?id=<?= $surat['id_surat'] ?>" class="btn btn-sm btn-warning m-1" title="Edit">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </a>
-
-                                        <button class="btn btn-sm btn-info m-1" title="Disposisi"><i class="bi bi-file-earmark-text"></i></button>
-                                        <button class="btn btn-sm btn-secondary m-1" title="Print"><i class="bi bi-printer"></i></button>
-
-                                        <a href="hapus_surat_masuk.php?id=<?= $surat['id_surat'] ?>" class="btn btn-sm btn-danger m-1" title="Delete" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?');">
-                                            <i class="bi bi-trash"></i>
-                                        </a>
+                                    <td class="text-center">
+                                        <div class="d-flex flex-wrap justify-content-center align-items-center" style="gap: 0.25rem;">
+                                            <a href="edit_surat_masuk.php?id=<?= $surat['id_surat'] ?>" class="btn btn-sm btn-warning" title="Edit"><i class="bi bi-pencil-square"></i></a>
+                                            <button class="btn btn-sm btn-info" title="Disposisi"><i class="bi bi-file-earmark-text"></i></button>
+                                            <button class="btn btn-sm btn-secondary" title="Print"><i class="bi bi-printer"></i></button>
+                                            <a href="hapus_surat_masuk.php?id=<?= $surat['id_surat'] ?>" class="btn btn-sm btn-danger" title="Delete" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?');"><i class="bi bi-trash"></i></a>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -133,13 +156,19 @@ $surat_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </table>
             </div>
 
-            <nav aria-label="Page navigation">
+            <nav aria-label="Page navigation" class="mt-3">
                 <ul class="pagination justify-content-end">
-                    <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
-                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                    <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                    <li class="page-item <?= ($page <= 1) ? 'disabled' : '' ?>">
+                        <a class="page-link" href="?page=<?= $page - 1 ?>&limit=<?= $limit ?>&search=<?= urlencode($search_keyword) ?>">Previous</a>
+                    </li>
+                    <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                        <li class="page-item <?= ($i == $page) ? 'active' : '' ?>">
+                            <a class="page-link" href="?page=<?= $i ?>&limit=<?= $limit ?>&search=<?= urlencode($search_keyword) ?>"><?= $i ?></a>
+                        </li>
+                    <?php endfor; ?>
+                    <li class="page-item <?= ($page >= $total_pages) ? 'disabled' : '' ?>">
+                        <a class="page-link" href="?page=<?= $page + 1 ?>&limit=<?= $limit ?>&search=<?= urlencode($search_keyword) ?>">Next</a>
+                    </li>
                 </ul>
             </nav>
         </div>
@@ -147,6 +176,5 @@ $surat_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </div>
 
 <?php
-// Ubah path ini sesuai dengan struktur folder Anda
 require_once __DIR__ . '/../../templates/footer.php';
 ?>

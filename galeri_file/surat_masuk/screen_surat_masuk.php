@@ -1,9 +1,7 @@
 <?php
-// Sertakan file header dan koneksi database
 require_once __DIR__ . '/../../templates/header.php';
 require_once __DIR__ . '/../../config/database.php';
 
-// --- LOGIKA PENGAMBILAN DATA & FILTER ---
 $start_date = $_GET['start_date'] ?? '';
 $end_date = $_GET['end_date'] ?? '';
 $search = $_GET['search'] ?? '';
@@ -12,24 +10,21 @@ $sql = "SELECT nama_file, isi_ringkas, tanggal_diterima, asal_surat, nomor_surat
 $conditions = [];
 $params = [];
 
-// ## PERUBAHAN DI SINI ##
-// Tambahkan kondisi WAJIB: hanya tampilkan jika ada nama file (tidak null dan tidak kosong)
 $conditions[] = "(nama_file IS NOT NULL AND nama_file != '')";
 
-// Tambahkan kondisi filter tanggal jika diisi
+
 if (!empty($start_date) && !empty($end_date)) {
     $conditions[] = "tanggal_diterima BETWEEN ? AND ?";
     $params[] = $start_date;
     $params[] = $end_date . ' 23:59:59';
 }
-// Tambahkan kondisi filter pencarian jika diisi
+
 if (!empty($search)) {
     $conditions[] = "(isi_ringkas LIKE ? OR asal_surat LIKE ? OR nomor_surat LIKE ?)";
     $like_keyword = '%' . $search . '%';
     array_push($params, $like_keyword, $like_keyword, $like_keyword);
 }
 
-// Gabungkan semua kondisi ke dalam query SQL (tidak perlu diubah)
 if (!empty($conditions)) {
     $sql .= " WHERE " . implode(" AND ", $conditions);
 }
@@ -48,13 +43,20 @@ $files = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </ol>
 
     <div class="card mb-4">
-        <div class="card-header bg-light"><i class="bi bi-search me-1"></i><b>Filter Galeri</b></div>
+        <div class="card-header bg-primary text-white"><i class="bi bi-search me-1"></i><b>Filter Galeri</b></div>
         <div class="card-body">
             <form action="" method="GET" class="w-100">
                 <div class="row g-3 align-items-end">
-                    <div class="col-md-3"><label for="start_date" class="form-label">Dari Tanggal</label><input type="date" class="form-control" id="start_date" name="start_date" value="<?= htmlspecialchars($start_date) ?>"></div>
-                    <div class="col-md-3"><label for="end_date" class="form-label">Sampai Tanggal</label><input type="date" class="form-control" id="end_date" name="end_date" value="<?= htmlspecialchars($end_date) ?>"></div>
-                    <div class="col-md-4"><label for="search" class="form-label">Cari Isi Ringkas, Asal, atau No. Surat</label><input type="text" class="form-control" id="search" name="search" placeholder="Masukkan kata kunci..." value="<?= htmlspecialchars($search) ?>"></div>
+                    <div class="col-md-3"><label for="start_date" class="form-label">Dari Tanggal</label><input type="date" class="form-control" id="start_date" name="start_date" value="<?= htmlspecialchars($start_date) ?>">
+                    </div>
+
+                    <div class="col-md-3"><label for="end_date" class="form-label">Sampai Tanggal</label><input type="date" class="form-control" id="end_date" name="end_date" value="<?= htmlspecialchars($end_date) ?>">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="search" class="form-label">Cari Isi Ringkas, Asal, atau No. Surat</label><input type="text" class="form-control" id="search" name="search" placeholder="Masukkan kata kunci..." value="<?= htmlspecialchars($search) ?>">
+                    </div>
+                    
                     <div class="col-md-2"><button class="btn btn-primary w-100" type="submit"><i class="bi bi-filter"></i> Filter</button></div>
                 </div>
             </form>
@@ -72,7 +74,6 @@ $files = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <?php else: ?>
             <?php foreach ($files as $file): ?>
                 <?php
-                // Logika thumbnail (tidak ada perubahan)
                 $filePath = "/ams/transaksi_surat/surat_masuk/file_masuk/" . rawurlencode($file['nama_file']);
                 $fileExtension = strtolower(pathinfo($file['nama_file'], PATHINFO_EXTENSION));
                 $imageSrc = '';

@@ -54,7 +54,7 @@ $files = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </ol>
 
     <div class="card mb-4">
-        <div class="card-header bg-light"><i class="bi bi-search me-1"></i><b>Filter Galeri</b></div>
+        <div class="card-header bg-primary text-white"><i class="bi bi-search me-1"></i><b>Filter Galeri</b></div>
         <div class="card-body">
             <form action="" method="GET" class="w-100">
                 <div class="row g-3 align-items-end">

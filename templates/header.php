@@ -127,7 +127,17 @@ if (!isset($_SESSION['user_id'])) {
                         </ul>
                     </li>
                     <li class="nav-item"><a class="nav-link" href="/ams/referensi/screen_referensi.php">Referensi</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/ams/pages/pengaturan.php">Pengaturan</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="galeriDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Pengaturan
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="pengaturanDropdown">
+                            <li><a class="dropdown-item" href="/ams/pengaturan/instansi_pengaturan.php">Instansi</a></li>
+                            <li><a class="dropdown-item" href="/ams/pengaturan/user/screen_user.php">User</a></li>
+                            <li><a class="dropdown-item" href="/ams/pengaturan/backup_pengaturan.php">Backup</a></li>
+                            <li><a class="dropdown-item" href="/ams/pengaturan/restore_pengaturan.php">Restore</a></li>
+                        </ul>
+                    </li>
                 </ul>
                 <div class="d-flex">
                     <div class="nav-item dropdown">
