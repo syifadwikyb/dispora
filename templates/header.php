@@ -7,7 +7,15 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+try {
+    $stmt_instansi_header = $conn->prepare("SELECT nama_instansi, logo FROM instansi WHERE id = 1");
+    $stmt_instansi_header->execute();
+    $instansi = $stmt_instansi_header->fetch(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $instansi = ['nama_instansi' => 'AMS', 'logo' => null];
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="id">
 
@@ -40,7 +48,8 @@ if (!isset($_SESSION['user_id'])) {
             #mainNav,
             #filter-panel,
             .breadcrumb,
-            footer, header {
+            footer,
+            header {
                 display: none !important;
             }
 
@@ -91,7 +100,9 @@ if (!isset($_SESSION['user_id'])) {
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top" style="background-color: #343a40;">
         <div class="container-fluid">
             <a class="navbar-brand" href="/ams/index.php">
-                <img src="https://via.placeholder.com/120x40.png?text=LOGO" alt="Logo">
+                <img src="/ams/assets/images/<?= htmlspecialchars($instansi['logo']) ?>?v=<?= time() ?>"
+                    alt="<?= htmlspecialchars($instansi['nama_instansi']) ?>"
+                    height="30">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
                 <span class="navbar-toggler-icon"></span>

@@ -157,7 +157,7 @@ try {
                                 <div class="col-md-4 col-lg-3">
                                     <?php if (!empty($instansi['logo'])): ?>
                                         <strong>Logo Saat Ini:</strong><br>
-                                        <img src="/ams/assets/images/<?= htmlspecialchars($instansi['logo']) ?>"
+                                        <img src="/ams/assets/images/<?= htmlspecialchars($instansi['logo']) ?>?v=<?= time() ?>"
                                             alt="Logo Instansi"
                                             class="img-thumbnail mt-2"
                                             style="width: 150px; height: 150px; object-fit: cover;">
