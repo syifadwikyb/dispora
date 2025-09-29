@@ -9,30 +9,25 @@ $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
 
-// 2. Logika Pencarian
 $search_keyword = isset($_GET['search']) ? $_GET['search'] : '';
 $where_clause = "";
 $params = [];
 
 if (!empty($search_keyword)) {
-    // Cari berdasarkan username, nama, atau NIP
     $where_clause = " WHERE username LIKE ? OR nama_lengkap LIKE ? OR nip LIKE ?";
     $like_keyword = '%' . $search_keyword . '%';
     $params = [$like_keyword, $like_keyword, $like_keyword];
 }
 
-// 3. Query untuk MENGHITUNG TOTAL DATA
 $sql_total = "SELECT COUNT(*) FROM pengguna" . $where_clause;
 $stmt_total = $conn->prepare($sql_total);
 $stmt_total->execute($params);
 $total_rows = $stmt_total->fetchColumn();
 $total_pages = ceil($total_rows / $limit);
 
-// 4. Query UTAMA untuk MENGAMBIL DATA (dengan LIMIT dan OFFSET)
 $sql_data = "SELECT id, username, nama_lengkap, nip, level FROM pengguna" . $where_clause . " ORDER BY id ASC LIMIT ? OFFSET ?";
 $stmt_data = $conn->prepare($sql_data);
 
-// Gunakan bindValue() untuk kontrol tipe data yang eksplisit
 $i = 1;
 foreach ($params as $param_value) {
     $stmt_data->bindValue($i, $param_value, PDO::PARAM_STR);

@@ -1,12 +1,10 @@
 <?php
-// Letakkan semua logika di atas sebelum HTML
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 session_start();
 require_once __DIR__ . '/../../config/database.php';
 
-// Proses form jika disubmit
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'];
     $nama_lengkap = $_POST['nama_lengkap'];
@@ -15,8 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $konfirmasi_password = $_POST['konfirmasi_password'];
     $level = $_POST['level'];
 
-    // Validasi
-    if (empty($nip)) { // ## PERUBAHAN 1: Validasi NIP tidak boleh kosong
+    if (empty($nip)) {
         header("Location: tambah_user.php?gagal=NIP wajib diisi!");
         exit;
     }
@@ -25,8 +22,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // ## PERUBAHAN 2: Ganti nama tabel 'users' menjadi 'pengguna'
-    // Cek apakah username sudah ada
     $stmt = $conn->prepare("SELECT id FROM pengguna WHERE username = ?");
     $stmt->execute([$username]);
     if ($stmt->fetch()) {
@@ -34,7 +29,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // ## PERUBAHAN 3: Tambah validasi NIP tidak boleh sama
     $stmt = $conn->prepare("SELECT id FROM pengguna WHERE nip = ?");
     $stmt->execute([$nip]);
     if ($stmt->fetch()) {
@@ -42,10 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // Hash password sebelum disimpan
     $hashed_password = password_hash($password, PASSWORD_BCRYPT);
 
-    // Simpan ke database
     try {
         $sql = "INSERT INTO pengguna (username, nama_lengkap, nip, password, level) VALUES (?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);

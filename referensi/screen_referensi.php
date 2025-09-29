@@ -2,20 +2,13 @@
 require_once __DIR__ . '/../templates/header.php';
 require_once __DIR__ . '/../config/database.php';
 
-// Logika untuk menangani notifikasi (jika ada)
 $sukses = $_GET['sukses'] ?? null;
 $gagal = $_GET['gagal'] ?? null;
 
-// ===================================================================
-// ## BLOK PHP YANG DIPERBAIKI UNTUK PAGINASI ##
-// ===================================================================
-
-// 1. Tentukan Limit Data & Halaman Saat Ini
 $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
 
-// 2. Logika Pencarian
 $search_keyword = isset($_GET['search']) ? $_GET['search'] : '';
 $where_clause = "";
 $params = [];
@@ -26,25 +19,20 @@ if (!empty($search_keyword)) {
     $params = [$like_keyword, $like_keyword, $like_keyword];
 }
 
-// 3. Query untuk MENGHITUNG TOTAL DATA (untuk paginasi)
 $sql_total = "SELECT COUNT(*) FROM klasifikasi_surat" . $where_clause;
 $stmt_total = $conn->prepare($sql_total);
 $stmt_total->execute($params);
 $total_rows = $stmt_total->fetchColumn();
 $total_pages = ceil($total_rows / $limit);
 
-// 4. Query UTAMA untuk MENGAMBIL DATA (dengan LIMIT dan OFFSET)
 $sql_data = "SELECT * FROM klasifikasi_surat" . $where_clause . " ORDER BY id DESC LIMIT ? OFFSET ?";
 $stmt_data = $conn->prepare($sql_data);
 
-// Gunakan bindValue() untuk kontrol tipe data yang eksplisit agar tidak error
-$i = 1; // Counter untuk placeholder positional
-// Bind parameter pencarian (sebagai string)
+$i = 1;
 foreach ($params as $param_value) {
     $stmt_data->bindValue($i, $param_value, PDO::PARAM_STR);
     $i++;
 }
-// Bind parameter LIMIT dan OFFSET (sebagai integer)
 $stmt_data->bindValue($i, $limit, PDO::PARAM_INT);
 $stmt_data->bindValue($i + 1, $offset, PDO::PARAM_INT);
 

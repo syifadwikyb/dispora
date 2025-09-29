@@ -1,17 +1,14 @@
 <?php
-// 1. Mulai dengan error reporting dan session
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 session_start();
 
-// 2. Sertakan HANYA file yang dibutuhkan untuk logika
 require_once __DIR__ . '/../../config/database.php';
 
-// Variabel untuk notifikasi dan data
 $message = '';
 $surat = null;
 $error_fatal = null;
-$primary_key_column = 'id_surat'; // Nama kolom primary key
+$primary_key_column = 'id_surat';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_surat = $_POST['id_surat'];
@@ -26,11 +23,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nama_file_lama = $_POST['nama_file_lama'];
     $nama_file_final = $nama_file_lama;
 
-    // Logika upload file baru (jika ada)
     if (isset($_FILES['file_surat']) && $_FILES['file_surat']['error'] === 0 && !empty($_FILES['file_surat']['tmp_name'])) {
         $target_dir = $_SERVER['DOCUMENT_ROOT'] . "/ams/transaksi_surat/surat_masuk/file_masuk/";
         
-        // Hapus file lama terlebih dahulu
         if (!empty($nama_file_lama) && file_exists($target_dir . $nama_file_lama)) {
             unlink($target_dir . $nama_file_lama);
         }
@@ -59,18 +54,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':id_surat' => $id_surat
         ]);
 
-        // Redirect ke halaman daftar dengan pesan sukses
         header("Location: screen_surat_masuk.php?sukses=Data surat berhasil diperbarui!");
         exit;
 
     } catch (PDOException $e) {
-        // Jika gagal, redirect kembali ke form edit dengan pesan error
         header("Location: edit_surat_masuk.php?id={$id_surat}&gagal=" . urlencode("Update Gagal: " . $e->getMessage()));
         exit;
     }
 }
 
-// --- LOGIKA PENGAMBILAN DATA UNTUK DITAMPILKAN (METHOD GET) ---
 if (isset($_GET['id']) && is_numeric($_GET['id'])) {
     $id_surat = $_GET['id'];
     try {
@@ -94,7 +86,6 @@ if (isset($_GET['gagal'])) {
 
 require_once __DIR__ . '/../../templates/header.php';
 
-// Jika ada error fatal (misal ID tidak ditemukan), tampilkan pesan dan hentikan
 if (isset($error_fatal)) {
     echo '<div class="container-fluid px-4"><div class="alert alert-danger mt-4">' . $error_fatal . '</div></div>';
     require_once __DIR__ . '/../../templates/footer.php';

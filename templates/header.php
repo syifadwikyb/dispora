@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
 
-// Cek jika user belum login, alihkan ke halaman login
 if (!isset($_SESSION['user_id'])) {
     header("Location: /ams/login.php");
     exit();
@@ -27,24 +26,17 @@ try {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <style>
-        /* CSS untuk mengatur tampilan saat akan dicetak */
         @media print {
-
-            /* 1. Atur halaman ke Portrait dan atur margin */
             @page {
                 size: A4 portrait;
-                /* Mengatur orientasi menjadi Portrait */
                 margin: 1.5cm;
-                /* Atur margin halaman */
             }
 
             body {
                 background-color: #fff;
-                /* 2. Perkecil font secara drastis agar tabel muat */
                 font-size: 9pt;
             }
 
-            /* 3. Sembunyikan elemen non-cetak (area merah, tombol, dll) */
             #mainNav,
             #filter-panel,
             .breadcrumb,
@@ -63,20 +55,16 @@ try {
                 margin: 0 !important;
             }
 
-            /* 4. Buat tabel lebih ramping agar muat (SANGAT PENTING) */
             .table {
                 width: 100%;
             }
 
             .table th,
             .table td {
-                /* Perkecil padding di dalam sel seminimal mungkin */
                 padding: 3px 5px;
-                /* Paksa teks untuk pindah baris jika kolom terlalu sempit */
                 word-wrap: break-word;
             }
 
-            /* Atur ulang judul agar tetap rapi */
             .card-header {
                 border-bottom: 2px solid #000;
                 padding-bottom: 10px;

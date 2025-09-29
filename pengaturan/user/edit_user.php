@@ -1,32 +1,27 @@
 <?php
-// Letakkan semua logika di atas sebelum HTML
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 session_start();
 require_once __DIR__ . '/../../config/database.php';
 
-// Ambil ID dari URL, pastikan valid
 $id = $_GET['id'] ?? null;
 if (!$id || !filter_var($id, FILTER_VALIDATE_INT)) {
     header("Location: screen_user.php?gagal=ID user tidak valid!");
     exit;
 }
 
-// Proses form jika disubmit (method POST)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_post = $_POST['id'];
     $username = $_POST['username'];
     $nama_lengkap = $_POST['nama_lengkap'];
     $level = $_POST['level'];
 
-    // Validasi
     if (empty($username) || empty($nama_lengkap) || empty($level)) {
         header("Location: edit_user.php?id={$id_post}&gagal=Semua field wajib diisi!");
         exit;
     }
 
-    // Cek apakah username baru sudah digunakan oleh user LAIN
     $stmt = $conn->prepare("SELECT id FROM pengguna WHERE username = ? AND id != ?");
     $stmt->execute([$username, $id_post]);
     if ($stmt->fetch()) {
@@ -34,7 +29,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // Update data di database
     try {
         $sql = "UPDATE pengguna SET username = ?, nama_lengkap = ?, level = ? WHERE id = ?";
         $stmt = $conn->prepare($sql);
@@ -47,7 +41,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Ambil data user yang akan diedit dari database (method GET)
 try {
     $stmt = $conn->prepare("SELECT username, nama_lengkap, level FROM pengguna WHERE id = ?");
     $stmt->execute([$id]);
@@ -62,7 +55,6 @@ try {
     exit;
 }
 
-// Mulai bagian HTML
 require_once __DIR__ . '/../../templates/header.php';
 ?>
 

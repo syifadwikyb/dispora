@@ -1,5 +1,4 @@
 <?php
-// Pastikan header.php sudah memanggil session_start()
 require_once __DIR__ . '/../../templates/header.php';
 require_once __DIR__ . '/../../config/database.php';
 
@@ -9,7 +8,6 @@ $default_end_date = date('Y-m-t');
 $start_date = $_GET['start_date'] ?? $default_start_date;
 $end_date = $_GET['end_date'] ?? $default_end_date;
 
-// ## PERUBAHAN 1: Ganti query untuk menunjuk ke tabel 'surat_keluar' dan kolom yang sesuai
 $sql = "SELECT nomor_agenda, kode_klasifikasi, isi_ringkas, tujuan, nomor_surat, tanggal_surat, tanggal_dikirim, keterangan 
         FROM surat_keluar 
         WHERE DATE(tanggal_dikirim) BETWEEN ? AND ? 
@@ -104,7 +102,6 @@ $nama_pengelola = $_SESSION['nama_lengkap'] ?? 'User';
 </div>
 
 <script>
-// Skrip cetak (tidak ada perubahan)
 document.getElementById('printBtn').addEventListener('click', function() {
     window.print();
 });

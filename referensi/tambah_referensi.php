@@ -1,22 +1,17 @@
 <?php
-// Aktifkan error reporting untuk development
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-// Panggil session_start() di awal jika Anda menggunakannya
 session_start(); 
 
-// Sertakan HANYA file yang dibutuhkan untuk logika (koneksi database)
 require_once __DIR__ . '/../config/database.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    // 1. Ambil data dari form
     $kode = $_POST['kode'];
     $nama = $_POST['nama'];
     $uraian = $_POST['uraian'];
 
-    // 2. Validasi dasar (pastikan kode dan nama tidak kosong)
     if (empty($kode) || empty($nama)) {
         header("Location: tambah_referensi.php?gagal=Kode dan Nama wajib diisi!");
         exit;
@@ -65,7 +60,6 @@ require_once __DIR__ . '/../templates/header.php';
         <div class="card-body">
             
             <?php
-            // Tampilkan notifikasi jika ada pesan 'gagal' dari URL
             if (isset($_GET['gagal'])) {
                 echo '<div class="alert alert-danger" role="alert">' . htmlspecialchars($_GET['gagal']) . '</div>';
             }

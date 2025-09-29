@@ -108,6 +108,5 @@ $nama_pengelola = $_SESSION['nama_lengkap'] ?? 'User';
 </script>
 
 <?php
-// Sertakan file footer
 require_once __DIR__ . '/../../templates/footer.php';
 ?>

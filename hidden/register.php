@@ -1,36 +1,26 @@
 <?php
-// 1. Hubungkan ke database
 require_once __DIR__ . '/../config/database.php';
 
-// Variabel untuk menampung pesan feedback
 $message = '';
-
-// 2. Cek jika form sudah disubmit (method-nya POST)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    // Ambil data dari form
     $nama_lengkap = $_POST['nama_lengkap'];
     $username     = $_POST['username'];
     $password     = $_POST['password'];
     $role         = $_POST['role'];
 
-    // Validasi dasar agar tidak ada yang kosong
     if (empty($nama_lengkap) || empty($username) || empty($password) || empty($role)) {
         $message = '<div class="alert alert-danger">Semua field wajib diisi!</div>';
     } else {
-        // PENTING: Enkripsi password sebelum disimpan ke database
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-        // Cek dulu apakah username sudah ada di database
         $stmt_check = $conn->prepare("SELECT id_user FROM users WHERE username = :username");
         $stmt_check->bindParam(':username', $username);
         $stmt_check->execute();
 
         if ($stmt_check->rowCount() > 0) {
-            // Jika username sudah ada, beri pesan error
             $message = '<div class="alert alert-danger">Registrasi Gagal! Username sudah digunakan.</div>';
         } else {
-            // Jika aman, masukkan data user baru ke tabel 'users'
             try {
                 $stmt = $conn->prepare("INSERT INTO users (nama_lengkap, username, password, role) VALUES (:nama, :user, :pass, :role)");
                 $stmt->bindParam(':nama', $nama_lengkap);
