@@ -68,7 +68,14 @@ $nama_pengelola = $_SESSION['nama_lengkap'] ?? 'User';
                     <tbody class="text-center">
                         <?php if (empty($agendas)): ?>
                             <tr>
-                                <td colspan="10">Tidak ada data untuk periode yang dipilih.</td>
+                                <td colspan="10" class="text-center">
+                                    <div class="alert alert-warning text-center">
+                                        <i class="bi bi-exclamation-triangle-fill h4"></i>
+                                        <div class="mb-0 mt-2">
+                                            <p>Tidak ada data untuk periode yang dipilih.</p>                             
+                                        </div>
+                                    </div>
+                                </td>
                             </tr>
                         <?php else: ?>
                             <?php $nomor = 1; ?>

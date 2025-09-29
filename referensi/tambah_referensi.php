@@ -9,11 +9,6 @@ session_start();
 // Sertakan HANYA file yang dibutuhkan untuk logika (koneksi database)
 require_once __DIR__ . '/../config/database.php';
 
-// ===================================================================
-// SEMUA LOGIKA PROSES (POST) PINDAH KE SINI, SEBELUM HTML DIKIRIM
-// ===================================================================
-
-// Cek jika form sudah disubmit
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // 1. Ambil data dari form
@@ -27,7 +22,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // 3. Proses simpan ke database
     try {
         $sql = "INSERT INTO klasifikasi_surat (kode, nama, uraian) VALUES (:kode, :nama, :uraian)";
         $stmt = $conn->prepare($sql);
@@ -38,26 +32,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $stmt->execute();
 
-        // Jika berhasil, redirect kembali ke halaman utama dengan pesan sukses
         header("Location: screen_referensi.php?sukses=Data klasifikasi baru berhasil disimpan!");
         exit;
 
-    } catch (PDOException $e) {
-        // Tangani error, terutama jika kode sudah ada (UNIQUE constraint)
-        if ($e->getCode() == 23000) { // Kode error untuk duplicate entry
+    } catch (PDOException $e) {        
+        if ($e->getCode() == 23000) {
             $gagal = "Error: Kode '{$kode}' sudah ada di database. Silakan gunakan kode lain.";
         } else {
             $gagal = "Database Error: " . $e->getMessage();
-        }
-        // Redirect kembali ke form tambah data dengan pesan gagal
+        }        
         header("Location: tambah_referensi.php?gagal=" . urlencode($gagal));
         exit;
     }
 }
 
-// ===================================================================
-// SETELAH SEMUA LOGIKA SELESAI, BARU MULAI TAMPILKAN HALAMAN HTML
-// ===================================================================
 require_once __DIR__ . '/../templates/header.php';
 ?>
 

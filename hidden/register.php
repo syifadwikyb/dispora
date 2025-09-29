@@ -1,6 +1,6 @@
 <?php
 // 1. Hubungkan ke database
-require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/../config/database.php';
 
 // Variabel untuk menampung pesan feedback
 $message = '';
@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registrasi Akun Baru</title>
-    <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../assets/css/bootstrap.min.css" rel="stylesheet">
     <style>
       .register-form { max-width: 500px; margin: 5% auto; padding: 2rem; box-shadow: 0 0 10px rgba(0,0,0,.1); }
     </style>
@@ -88,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
         <button type="submit" class="btn btn-primary w-100">Daftar</button>
         <div class="text-center mt-3">
-            <a href="login.php">Sudah punya akun? Login di sini</a>
+            <a href="../login.php">Sudah punya akun? Login di sini</a>
         </div>
     </form>
 </div>

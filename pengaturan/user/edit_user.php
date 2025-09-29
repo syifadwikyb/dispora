@@ -79,7 +79,7 @@ require_once __DIR__ . '/../../templates/header.php';
     <?php endif; ?>
 
     <div class="card">
-        <div class="card-header bg-warning"><i class="bi bi-pencil-square me-1"></i> Formulir Edit User</div>
+        <div class="card-header bg-warning text-white"><i class="bi bi-pencil-square me-1"></i> <b>Formulir Edit User</b></div>
         <div class="card-body">
 
             <form action="edit_user.php?id=<?= htmlspecialchars($id) ?>" method="POST">
@@ -96,7 +96,6 @@ require_once __DIR__ . '/../../templates/header.php';
                 <div class="mb-3">
                     <label for="level" class="form-label">Tipe User (Role)</label>
                     <select class="form-select" id="level" name="level" required>
-                        <option value="User Biasa" <?= ($user['level'] == 'User Biasa') ? 'selected' : '' ?>>User Biasa</option>
                         <option value="Administrator" <?= ($user['level'] == 'Administrator') ? 'selected' : '' ?>>Administrator</option>
                     </select>
                 </div>

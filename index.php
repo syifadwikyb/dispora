@@ -1,22 +1,15 @@
 <?php
-// Sertakan file header dan koneksi database
-// Pastikan header.php sudah memanggil session_start()
 require_once __DIR__ . '/templates/header.php';
 require_once __DIR__ . '/config/database.php';
 
-// ===================================================================
-// ## LOGIKA PENGAMANAN HALAMAN DAN PENGAMBILAN DATA ##
-// ===================================================================
-
-// Cek jika user belum login, tendang ke halaman login
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit;
 }
 
-// Ambil data user dan instansi untuk notifikasi
 $nama_user = $_SESSION['nama_lengkap'] ?? 'Pengguna';
-$level_user = $_SESSION['level'] ?? 'User';
+$level_user = $_SESSION['level'] ?? 'Super Admin';
+
 
 $stmt_instansi = $conn->prepare("SELECT nama_instansi FROM instansi WHERE id = 1");
 $stmt_instansi->execute();

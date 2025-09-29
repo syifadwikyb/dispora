@@ -2,15 +2,9 @@
 require_once __DIR__ . '/../../templates/header.php';
 require_once __DIR__ . '/../../config/database.php';
 
-// Menangani notifikasi dari proses tambah/edit/hapus
 $sukses = $_GET['sukses'] ?? null;
 $gagal = $_GET['gagal'] ?? null;
 
-// ===================================================================
-// ## BLOK PHP YANG DIPERBARUI UNTUK PAGINASI DAN PENCARIAN ##
-// ===================================================================
-
-// 1. Tentukan Limit Data & Halaman Saat Ini
 $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
@@ -79,11 +73,18 @@ $users = $stmt_data->fetchAll(PDO::FETCH_ASSOC);
                 <div class="col-md-8">
                     <form action="" method="get">
                         <div class="input-group">
-                            <input type="text" class="form-control" placeholder="Cari username, nama, atau NIP..." name="search" value="<?= htmlspecialchars($search_keyword) ?>">
+                            <div class="position-relative flex-grow-1">
+                                <input type="text" class="form-control" placeholder="Cari username, nama, atau NIP..." name="search" value="<?= htmlspecialchars($search_keyword) ?>">
+                                <?php if (!empty($search_keyword)): ?>
+                                    <a href="screen_user.php"
+                                        class="btn btn-danger rounded-circle d-flex align-items-center justify-content-center position-absolute"
+                                        title="Hapus Filter"
+                                        style="width: 24px; height: 24px; padding: 0; top: 50%; transform: translateY(-50%); right: 10px; z-index: 100;">
+                                        <i class="bi bi-x-lg text-white"></i>
+                                    </a>
+                                <?php endif; ?>
+                            </div>
                             <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Cari</button>
-                            <?php if (!empty($search_keyword)): ?>
-                                <a href="user_pengaturan.php" class="btn btn-outline-danger" title="Hapus Filter"><i class="bi bi-x-lg"></i></a>
-                            <?php endif; ?>
                         </div>
                     </form>
                 </div>
@@ -121,7 +122,16 @@ $users = $stmt_data->fetchAll(PDO::FETCH_ASSOC);
                     </thead>
                     <tbody>
                         <?php if (empty($users)): ?>
-                            <tr><td colspan="5" class="text-center">Data user tidak ditemukan.</td></tr>
+                            <tr>
+                                <td colspan="5" class="text-center">
+                                    <div class="alert alert-warning text-center\">
+                                        <i class="bi bi-exclamation-triangle-fill h4"></i>
+                                        <div class="mb-0 mt-2">
+                                            <p>Data dengan kata kunci "<?= htmlspecialchars($search_keyword) ?>" tidak ditemukan.</p>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
                         <?php else: ?>
                             <?php $nomor = $offset + 1; ?>
                             <?php foreach ($users as $user): ?>
@@ -138,7 +148,12 @@ $users = $stmt_data->fetchAll(PDO::FETCH_ASSOC);
                                             <span class="badge bg-secondary">NO ACTION</span>
                                         <?php else: ?>
                                             <a href="edit_user.php?id=<?= $user['id'] ?>" class="btn btn-warning btn-sm m-1" title="Edit"><i class="bi bi-pencil-square"></i></a>
-                                            <a href="hapus_user.php?id=<?= $user['id'] ?>" class="btn btn-danger btn-sm m-1" title="Hapus" onclick="return confirm('Apakah Anda yakin ingin menghapus user ini?');"><i class="bi bi-trash"></i></a>
+                                            <a href="javascript:void(0);"
+                                                class="btn btn-sm btn-danger"
+                                                title="Delete"
+                                                onclick="confirmDelete('hapus_user.php?id=<?= $user['id'] ?>')">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
                                         <?php endif; ?>
                                     </td>
                                 </tr>

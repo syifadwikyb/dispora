@@ -82,9 +82,9 @@ require_once __DIR__ . '/../templates/header.php';
     </ol>
 
     <div class="card">
-        <div class="card-header bg-warning">
+        <div class="card-header bg-warning text-white">
             <i class="bi bi-pencil-square me-1"></i>
-            Formulir Edit Data Klasifikasi
+            <b>Formulir Edit Data Klasifikasi</b> 
         </div>
         <div class="card-body">
             

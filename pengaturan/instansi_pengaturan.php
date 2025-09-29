@@ -1,68 +1,56 @@
 <?php
-// 1. Aktifkan Error Reporting untuk mempermudah debugging
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-// Panggil session_start() jika diperlukan (misal untuk hak akses nanti)
 session_start();
 
-// Sertakan file header dan koneksi database
 require_once __DIR__ . '/../templates/header.php';
 require_once __DIR__ . '/../config/database.php';
 
-$message = ''; // Variabel untuk menyimpan pesan notifikasi
+$message = '';
 
-// ===================================================================
-// LOGIKA PROSES FORM (UPDATE DATA)
-// ===================================================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Ambil semua data dari form
     $nama_instansi = $_POST['nama_instansi'];
     $pimpinan = $_POST['pimpinan'];
     $alamat = $_POST['alamat'];
     $telepon = $_POST['telepon'];
     $email = $_POST['email'];
     $website = $_POST['website'];
-    $logo_sekarang = $_POST['logo_lama']; // Ambil nama logo yang sudah ada dari hidden input
+    $logo_sekarang = $_POST['logo_lama'];
 
-    // --- Logika Upload Logo Baru (hanya jika user memilih file baru) ---
     if (isset($_FILES['logo']) && $_FILES['logo']['error'] === 0 && !empty($_FILES['logo']['tmp_name'])) {
         $file = $_FILES['logo'];
 
-        // Validasi tipe file
         $allowed_types = ['image/jpeg', 'image/png'];
         if (!in_array($file['type'], $allowed_types)) {
             $message = '<div class="alert alert-danger">Error: Format file logo tidak diizinkan. Hanya JPG dan PNG.</div>';
         }
-        // Validasi ukuran file (misal maks 1MB)
         else if ($file['size'] > 1 * 1024 * 1024) {
             $message = '<div class="alert alert-danger">Error: Ukuran file logo melebihi 1 MB.</div>';
         } else {
-            // Jika validasi lolos, proses upload
             $target_dir = $_SERVER['DOCUMENT_ROOT'] . "/ams/assets/images/";
             if (!is_dir($target_dir)) {
                 mkdir($target_dir, 0777, true);
             }
 
             $ekstensi_file = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-            $nama_file_final = "logo_instansi." . $ekstensi_file; // Gunakan nama file yang konsisten
+            $nama_file_final = "logo_instansi." . $ekstensi_file;
             $target_file = $target_dir . $nama_file_final;
 
             if (move_uploaded_file($file['tmp_name'], $target_file)) {
-                $logo_sekarang = $nama_file_final; // Update nama logo dengan file yang baru
+                $logo_sekarang = $nama_file_final;
             } else {
                 $message = '<div class="alert alert-danger">Error: Gagal memindahkan file logo. Periksa izin folder.</div>';
             }
         }
     }
 
-    // --- Proses UPDATE ke Database (hanya jika tidak ada error dari upload) ---
     if (empty($message)) {
         try {
             $sql = "UPDATE instansi SET 
                         nama_instansi = :nama_instansi, pimpinan = :pimpinan, alamat = :alamat, 
                         telepon = :telepon, email = :email, website = :website, logo = :logo 
-                    WHERE id = 1"; // Selalu update baris dengan id = 1
+                    WHERE id = 1";
 
             $stmt = $conn->prepare($sql);
             $stmt->bindParam(':nama_instansi', $nama_instansi);
@@ -81,15 +69,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// ===================================================================
-// LOGIKA MENGAMBIL DATA UNTUK DITAMPILKAN DI FORM
-// ===================================================================
 try {
     $stmt = $conn->prepare("SELECT * FROM instansi WHERE id = 1");
     $stmt->execute();
     $instansi = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$instansi) {
-        // Fallback jika baris data terhapus, meskipun seharusnya tidak terjadi
+    if (!$instansi) {       
         $instansi = [];
         $message = '<div class="alert alert-warning">Data instansi tidak ditemukan. Silakan isi dan simpan untuk membuat data awal.</div>';
     }

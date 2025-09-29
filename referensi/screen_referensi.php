@@ -83,7 +83,17 @@ $klasifikasi_list = $stmt_data->fetchAll(PDO::FETCH_ASSOC);
                 <div class="col-md-8">
                     <form action="" method="get">
                         <div class="input-group">
-                            <input type="text" class="form-control" placeholder="Cari berdasarkan kode, nama, atau uraian" name="search" value="<?= htmlspecialchars($search_keyword) ?>">
+                            <div class="position-relative flex-grow-1">
+                                <input type="text" class="form-control" placeholder="Cari username, nama, atau NIP..." name="search" value="<?= htmlspecialchars($search_keyword) ?>">
+                                <?php if (!empty($search_keyword)): ?>
+                                    <a href="screen_referensi.php"
+                                        class="btn btn-danger rounded-circle d-flex align-items-center justify-content-center position-absolute"
+                                        title="Hapus Filter"
+                                        style="width: 24px; height: 24px; padding: 0; top: 50%; transform: translateY(-50%); right: 10px; z-index: 100;">
+                                        <i class="bi bi-x-lg text-white"></i>
+                                    </a>
+                                <?php endif; ?>
+                            </div>
                             <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Cari</button>
                         </div>
                     </form>
@@ -96,7 +106,7 @@ $klasifikasi_list = $stmt_data->fetchAll(PDO::FETCH_ASSOC);
         <div class="card-header bg-light">
             <div class="d-flex justify-content-between align-items-center">
                 <span class="fs-6 fw-bold"><i class="bi bi-table me-1"></i> Tabel Data Klasifikasi Surat</span>
-                
+
                 <form action="" method="GET" id="limitForm" class="d-flex align-items-center">
                     <input type="hidden" name="search" value="<?= htmlspecialchars($search_keyword) ?>">
                     <select class="form-select form-select-sm" name="limit" onchange="this.form.submit();" style="width: auto;">
@@ -117,13 +127,22 @@ $klasifikasi_list = $stmt_data->fetchAll(PDO::FETCH_ASSOC);
                             <th style="width: 15%;">Kode</th>
                             <th>Nama</th>
                             <th>Uraian</th>
-                            <th style="width: 15%;">Tindakan</th>
+                            <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'super_admin'): ?>
+                                <th style="width: 15%;">Tindakan</th>
+                            <?php endif; ?>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($klasifikasi_list)): ?>
                             <tr>
-                                <td colspan="4" class="text-center">Data tidak ditemukan.</td>
+                                <td colspan="5" class="text-center">
+                                    <div class="alert alert-warning text-center\">
+                                        <i class="bi bi-exclamation-triangle-fill h4"></i>
+                                        <div class="mb-0 mt-2">
+                                            <p>Data dengan kata kunci "<?= htmlspecialchars($search_keyword) ?>" tidak ditemukan.</p>
+                                        </div>
+                                    </div>
+                                </td>
                             </tr>
                         <?php else: ?>
                             <?php foreach ($klasifikasi_list as $klasifikasi): ?>
@@ -131,10 +150,17 @@ $klasifikasi_list = $stmt_data->fetchAll(PDO::FETCH_ASSOC);
                                     <td class="text-center align-middle fw-bold"><?= htmlspecialchars($klasifikasi['kode']) ?></td>
                                     <td class="align-middle"><?= htmlspecialchars($klasifikasi['nama']) ?></td>
                                     <td class="align-middle"><?= htmlspecialchars($klasifikasi['uraian']) ?></td>
-                                    <td class="text-center align-middle">
-                                        <a href="edit_referensi.php?id=<?= $klasifikasi['id'] ?>" class="btn btn-warning btn-sm m-1" title="Edit"><i class="bi bi-pencil-square"></i></a>
-                                        <a href="hapus_referensi.php?id=<?= $klasifikasi['id'] ?>" class="btn btn-danger btn-sm m-1" title="Delete" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?');"><i class="bi bi-trash"></i></a>
-                                    </td>
+                                    <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'super_admin'): ?>
+                                        <td class="text-center align-middle">
+                                            <a href="edit_referensi.php?id=<?= $klasifikasi['id'] ?>" class="btn btn-warning btn-sm m-1" title="Edit"><i class="bi bi-pencil-square"></i></a>
+                                            <a href="javascript:void(0);"
+                                                class="btn btn-danger btn-sm m-1"
+                                                title="Delete"
+                                                onclick="confirmDelete('hapus_referensi.php?id=<?= $klasifikasi['id'] ?>')">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </td>
+                                    <?php endif; ?>
                                 </tr>
                             <?php endforeach; ?>
                         <?php endif; ?>

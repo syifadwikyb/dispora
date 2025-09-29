@@ -1,10 +1,17 @@
 <?php
-require_once __DIR__ . '/../../config/database.php'; 
+// 1. Mulai dengan error reporting dan session
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+session_start();
 
+// 2. Sertakan HANYA file yang dibutuhkan untuk logika
+require_once __DIR__ . '/../../config/database.php';
+
+// Variabel untuk notifikasi dan data
 $message = '';
 $surat = null;
-$id_surat = null;
-$primary_key_column = 'id_surat';
+$error_fatal = null;
+$primary_key_column = 'id_surat'; // Nama kolom primary key
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_surat = $_POST['id_surat'];
@@ -19,24 +26,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nama_file_lama = $_POST['nama_file_lama'];
     $nama_file_final = $nama_file_lama;
 
-    if (isset($_FILES['file_surat']) && $_FILES['file_surat']['error'] === 0) {
-        // FIX 1: Perbaiki path upload
-        $path_file_lama = $_SERVER['DOCUMENT_ROOT'] . "/ams/transaksi_surat/surat_masuk/file_masuk/" . $nama_file_lama;
-        if (!empty($nama_file_lama) && file_exists($path_file_lama)) {
-            unlink($path_file_lama);
+    // Logika upload file baru (jika ada)
+    if (isset($_FILES['file_surat']) && $_FILES['file_surat']['error'] === 0 && !empty($_FILES['file_surat']['tmp_name'])) {
+        $target_dir = $_SERVER['DOCUMENT_ROOT'] . "/ams/transaksi_surat/surat_masuk/file_masuk/";
+        
+        // Hapus file lama terlebih dahulu
+        if (!empty($nama_file_lama) && file_exists($target_dir . $nama_file_lama)) {
+            unlink($target_dir . $nama_file_lama);
         }
 
         $file = $_FILES['file_surat'];
-        $nama_file_asli = $file['name'];
-        $lokasi_file_tmp = $file['tmp_name'];
-        // FIX 1: Perbaiki path upload
-        $target_dir = $_SERVER['DOCUMENT_ROOT'] . "/ams/transaksi_surat/surat_masuk/file_masuk/";
-        $ekstensi_file = strtolower(pathinfo($nama_file_asli, PATHINFO_EXTENSION));
-        $nama_asli_tanpa_ekstensi = pathinfo($nama_file_asli, PATHINFO_FILENAME);
-        $nama_aman = preg_replace("/[^a-zA-Z0-9_-]/", "_", $nama_asli_tanpa_ekstensi);
+        $ekstensi_file = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $nama_aman = preg_replace("/[^a-zA-Z0-9_-]/", "_", pathinfo($file['name'], PATHINFO_FILENAME));
         $nama_file_final = time() . "_" . $nama_aman . "." . $ekstensi_file;
         $target_file = $target_dir . $nama_file_final;
-        move_uploaded_file($lokasi_file_tmp, $target_file);
+        
+        move_uploaded_file($file['tmp_name'], $target_file);
     }
     
     try {
@@ -44,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     nomor_agenda = :nomor_agenda, asal_surat = :asal_surat, nomor_surat = :nomor_surat, 
                     isi_ringkas = :isi_ringkas, kode_klasifikasi = :kode_klasifikasi, indeks_berkas = :indeks_berkas, 
                     tanggal_surat = :tanggal_surat, keterangan = :keterangan, nama_file = :nama_file 
-                WHERE $primary_key_column = :id_surat";
+                WHERE {$primary_key_column} = :id_surat";
         
         $stmt = $conn->prepare($sql);
         $stmt->execute([
@@ -54,34 +59,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':id_surat' => $id_surat
         ]);
 
-        // FIX 3: Perbaiki path redirect
-        header("Location: screen_surat_masuk.php?status=updated");
-        exit();
+        // Redirect ke halaman daftar dengan pesan sukses
+        header("Location: screen_surat_masuk.php?sukses=Data surat berhasil diperbarui!");
+        exit;
 
     } catch (PDOException $e) {
-        $message = '<div class="alert alert-danger">Update Gagal: ' . $e->getMessage() . '</div>';
+        // Jika gagal, redirect kembali ke form edit dengan pesan error
+        header("Location: edit_surat_masuk.php?id={$id_surat}&gagal=" . urlencode("Update Gagal: " . $e->getMessage()));
+        exit;
     }
 }
 
+// --- LOGIKA PENGAMBILAN DATA UNTUK DITAMPILKAN (METHOD GET) ---
 if (isset($_GET['id']) && is_numeric($_GET['id'])) {
     $id_surat = $_GET['id'];
-    $stmt = $conn->prepare("SELECT * FROM surat_masuk WHERE $primary_key_column = ?");
-    $stmt->execute([$id_surat]);
-    $surat = $stmt->fetch(PDO::FETCH_ASSOC);
+    try {
+        $stmt = $conn->prepare("SELECT * FROM surat_masuk WHERE {$primary_key_column} = ?");
+        $stmt->execute([$id_surat]);
+        $surat = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if (!$surat) {
-        $error_fatal = "Data surat dengan ID tersebut tidak ditemukan!";
+        if (!$surat) {
+            $error_fatal = "Data surat dengan ID {$id_surat} tidak ditemukan!";
+        }
+    } catch (PDOException $e) {
+        $error_fatal = "Database Error: " . $e->getMessage();
     }
 } else {
-    $error_fatal = "ID Surat tidak valid.";
+    $error_fatal = "ID Surat tidak valid atau tidak diberikan.";
+}
+
+if (isset($_GET['gagal'])) {
+    $message = '<div class="alert alert-danger">' . htmlspecialchars($_GET['gagal']) . '</div>';
 }
 
 require_once __DIR__ . '/../../templates/header.php';
 
+// Jika ada error fatal (misal ID tidak ditemukan), tampilkan pesan dan hentikan
 if (isset($error_fatal)) {
     echo '<div class="container-fluid px-4"><div class="alert alert-danger mt-4">' . $error_fatal . '</div></div>';
     require_once __DIR__ . '/../../templates/footer.php';
-    exit();
+    exit;
 }
 ?>
 
@@ -94,17 +111,17 @@ if (isset($error_fatal)) {
     </ol>
 
     <div class="card">
-        <div class="card-header bg-warning text-white">
+        <div class="card-header bg-warning">
             <i class="bi bi-pencil-square me-1"></i>
-            Formulir Edit Data Surat Masuk
+            <b>Formulir Edit Data</b>
         </div>
         <div class="card-body">
             
             <?php if(!empty($message)) echo $message; ?>
 
-            <form action="" method="POST" enctype="multipart/form-data">
+            <form action="edit_surat_masuk.php" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="id_surat" value="<?= htmlspecialchars($surat[$primary_key_column]) ?>">
-                <input type="hidden" name="nama_file_lama" value="<?= htmlspecialchars($surat['nama_file']) ?>">
+                <input type="hidden" name="nama_file_lama" value="<?= htmlspecialchars($surat['nama_file'] ?? '') ?>">
 
                 <div class="row g-3">
                     <div class="col-md-6">
@@ -132,15 +149,15 @@ if (isset($error_fatal)) {
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="kode_klasifikasi" class="form-label">Kode Klasifikasi</label>
-                            <input type="text" class="form-control" id="kode_klasifikasi" name="kode_klasifikasi" value="<?= htmlspecialchars($surat['kode_klasifikasi']) ?>">
+                            <input type="text" class="form-control" id="kode_klasifikasi" name="kode_klasifikasi" value="<?= htmlspecialchars($surat['kode_klasifikasi'] ?? '') ?>">
                         </div>
                         <div class="mb-3">
                             <label for="indeks_berkas" class="form-label">Indeks Berkas</label>
-                            <input type="text" class="form-control" id="indeks_berkas" name="indeks_berkas" value="<?= htmlspecialchars($surat['indeks_berkas']) ?>">
+                            <input type="text" class="form-control" id="indeks_berkas" name="indeks_berkas" value="<?= htmlspecialchars($surat['indeks_berkas'] ?? '') ?>">
                         </div>
                         <div class="mb-3">
                             <label for="keterangan" class="form-label">Keterangan</label>
-                            <textarea class="form-control" id="keterangan" name="keterangan" rows="3"><?= htmlspecialchars($surat['keterangan']) ?></textarea>
+                            <textarea class="form-control" id="keterangan" name="keterangan" rows="3"><?= htmlspecialchars($surat['keterangan'] ?? '') ?></textarea>
                         </div>
                         <div class="mb-3">
                             <label for="file_surat" class="form-label">Upload File Baru (Opsional)</label>

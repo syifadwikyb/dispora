@@ -93,6 +93,7 @@ try {
             }
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
@@ -138,33 +139,39 @@ try {
                         </ul>
                     </li>
                     <li class="nav-item"><a class="nav-link" href="/ams/referensi/screen_referensi.php">Referensi</a></li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="galeriDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Pengaturan
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="pengaturanDropdown">
-                            <li><a class="dropdown-item" href="/ams/pengaturan/instansi_pengaturan.php">Instansi</a></li>
-                            <li><a class="dropdown-item" href="/ams/pengaturan/user/screen_user.php">User</a></li>
-                            <li><a class="dropdown-item" href="/ams/pengaturan/backup_pengaturan.php">Backup</a></li>
-                            <li><a class="dropdown-item" href="/ams/pengaturan/restore_pengaturan.php">Restore</a></li>
-                        </ul>
-                    </li>
+                    <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'super_admin'): ?>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="pengaturanDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Pengaturan
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="pengaturanDropdown">
+                                <li><a class="dropdown-item" href="/ams/pengaturan/instansi_pengaturan.php">Instansi</a></li>
+                                <li><a class="dropdown-item" href="/ams/pengaturan/backup_pengaturan.php">Backup</a></li>
+                                <li><a class="dropdown-item" href="/ams/pengaturan/restore_pengaturan.php">Restore</a></li>
+                            </ul>
+                        </li>
+                    <?php endif; ?>
                 </ul>
                 <div class="d-flex">
-                    <div class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown">
-                            <?= htmlspecialchars($_SESSION['nama_lengkap']); ?>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#">Profile</a></li>
-                            <?php if ($_SESSION['role'] === 'super_admin'): ?>
-                                <li><a class="dropdown-item" href="/ams/admin/user_management.php">Manajemen User</a></li>
-                            <?php endif; ?>
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                            <li><a class="dropdown-item" href="/ams/logout.php">Logout</a></li>
-                        </ul>
+                    <div class="d-flex">
+                        <div class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-white" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-person-circle me-1"></i>
+                                <?= htmlspecialchars($_SESSION['nama_lengkap'] ?? 'User'); ?>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <li><a class="dropdown-item" href="#">Profile</a></li>
+
+                                <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'super_admin'): ?>
+                                    <li><a class="dropdown-item" href="/ams/pengaturan/user/screen_user.php">Manajemen User</a></li>
+                                <?php endif; ?>
+
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li><a class="dropdown-item" href="/ams/logout.php">Logout</a></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>

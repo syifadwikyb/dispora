@@ -54,9 +54,19 @@ $files = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     </div>
 
                     <div class="col-md-4">
-                        <label for="search" class="form-label">Cari Isi Ringkas, Asal, atau No. Surat</label><input type="text" class="form-control" id="search" name="search" placeholder="Masukkan kata kunci..." value="<?= htmlspecialchars($search) ?>">
+                        <label for="search" class="form-label">Cari Isi Ringkas, Asal, atau No. Surat</label>
+                        <div class="position-relative">
+                            <input type="text" class="form-control pe-5" id="search" name="search" placeholder="Masukkan kata kunci..." value="<?= htmlspecialchars($search ?? '') ?>">
+                            <?php if (!empty($search)): ?>
+                                <a href="screen_surat_masuk.php"
+                                    class="btn btn-danger rounded-circle d-flex align-items-center justify-content-center position-absolute"
+                                    title="Hapus Filter"
+                                    style="width: 24px; height: 24px; padding: 0; top: 50%; transform: translateY(-50%); right: 10px; z-index: 100;">
+                                    <i class="bi bi-x-lg text-white"></i>
+                                </a>
+                            <?php endif; ?>
+                        </div>
                     </div>
-                    
                     <div class="col-md-2"><button class="btn btn-primary w-100" type="submit"><i class="bi bi-filter"></i> Filter</button></div>
                 </div>
             </form>

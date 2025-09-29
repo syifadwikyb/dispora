@@ -47,7 +47,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Simpan ke database
     try {
-        // ## PERUBAHAN 4: Ganti nama tabel 'users' menjadi 'pengguna' di query INSERT
         $sql = "INSERT INTO pengguna (username, nama_lengkap, nip, password, level) VALUES (?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
         $stmt->execute([$username, $nama_lengkap, $nip, $hashed_password, $level]);
@@ -96,17 +95,16 @@ require_once __DIR__ . '/../../templates/header.php';
                         <label for="nip" class="form-label">NIP</label>
                         <input type="text" class="form-control" id="nip" name="nip" required>
                     </div>
-                     <div class="col-md-6">
+                    <div class="col-md-6">
                         <label for="konfirmasi_password" class="form-label">Konfirmasi Password</label>
                         <input type="password" class="form-control" id="konfirmasi_password" name="konfirmasi_password" required>
                     </div>
                     <div class="col-md-6">
                         <label for="level" class="form-label">Tipe User</label>
-                        <select class="form-select" id="level" name="level" required>
-                            <option value="" disabled selected>-- Pilih Tipe User --</option>
-                            <option value="User Biasa">User Biasa</option>
-                            <option value="Administrator">Administrator</option>
+                        <select class="form-select bg-light" id="level" disabled>
+                            <option selected>Administrator</option>
                         </select>
+                        <input type="hidden" name="level" value="Administrator">
                     </div>
                 </div>
                 <hr>

@@ -1,18 +1,14 @@
 <?php
-// Sertakan header dan koneksi database
 require_once __DIR__ . '/../../templates/header.php';
 require_once __DIR__ . '/../../config/database.php';
 
-// ===================================================================
-// ## BLOK PHP YANG DIPERBAIKI UNTUK PAGINASI ##
-// ===================================================================
+$sukses = $_GET['sukses'] ?? null;
+$gagal = $_GET['gagal'] ?? null;
 
-// 1. Tentukan Limit Data & Halaman Saat Ini
 $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
 
-// 2. Logika Pencarian
 $search_keyword = isset($_GET['search']) ? $_GET['search'] : '';
 $where_clause = "";
 $params = [];
@@ -23,18 +19,15 @@ if (!empty($search_keyword)) {
     $params = [$like_keyword, $like_keyword, $like_keyword, $like_keyword];
 }
 
-// 3. Query untuk MENGHITUNG TOTAL DATA (untuk paginasi)
 $sql_total = "SELECT COUNT(*) FROM surat_keluar" . $where_clause;
 $stmt_total = $conn->prepare($sql_total);
 $stmt_total->execute($params);
 $total_rows = $stmt_total->fetchColumn();
 $total_pages = ceil($total_rows / $limit);
 
-// 4. Query UTAMA untuk MENGAMBIL DATA (dengan LIMIT dan OFFSET)
 $sql_data = "SELECT * FROM surat_keluar" . $where_clause . " ORDER BY tanggal_dikirim DESC LIMIT ? OFFSET ?";
 $stmt_data = $conn->prepare($sql_data);
 
-// Gunakan bindValue() untuk kontrol tipe data yang eksplisit
 $i = 1;
 foreach ($params as $param_value) {
     $stmt_data->bindValue($i, $param_value, PDO::PARAM_STR);
@@ -54,6 +47,17 @@ $surat_list = $stmt_data->fetchAll(PDO::FETCH_ASSOC);
         <li class="breadcrumb-item"><a href="/ams/index.php">Beranda</a></li>
         <li class="breadcrumb-item active">Surat Keluar</li>
     </ol>
+
+    <?php if ($sukses): ?>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <?= htmlspecialchars($sukses) ?><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
+    <?php if ($gagal): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <?= htmlspecialchars($gagal) ?><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
 
     <div class="card mb-4">
         <div class="card-header bg-primary text-white">
@@ -117,13 +121,26 @@ $surat_list = $stmt_data->fetchAll(PDO::FETCH_ASSOC);
                             <th>Isi Ringkas & File</th>
                             <th>Tujuan</th>
                             <th>No. Surat & Tgl. Surat</th>
-                            <th style="width: 15%;">Tindakan</th>
+                            <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'super_admin'): ?>
+                                <th style="width: 15%;">Tindakan</th>
+                            <?php endif; ?>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($surat_list)): ?>
                             <tr>
-                                <td colspan="5" class="text-center">Belum ada data surat keluar.</td>
+                                <td colspan="5" class="text-center">
+                                    <div class="alert alert-warning text-center\">
+                                        <i class="bi bi-exclamation-triangle-fill h4"></i>
+                                        <div class="mb-0 mt-2">
+                                            <?php if (!empty($search_keyword)): ?>
+                                                Data dengan kata kunci "<?= htmlspecialchars($search_keyword) ?>" tidak ditemukan.
+                                            <?php else: ?>
+                                                Belum ada data surat masuk.
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </td>
                             </tr>
                         <?php else: ?>
                             <?php foreach ($surat_list as $surat): ?>
@@ -145,10 +162,17 @@ $surat_list = $stmt_data->fetchAll(PDO::FETCH_ASSOC);
                                         <?= htmlspecialchars($surat['nomor_surat']) ?>
                                         <small class="d-block text-muted"><?= date('d M Y', strtotime($surat['tanggal_surat'])) ?></small>
                                     </td>
-                                    <td class="text-center">
-                                        <a href="edit_surat_keluar.php?id=<?= $surat['id_surat_keluar'] ?>" class="btn btn-sm btn-warning m-1" title="Edit"><i class="bi bi-pencil-square"></i></a>
-                                        <a href="hapus_surat_keluar.php?id=<?= $surat['id_surat_keluar'] ?>" class="btn btn-sm btn-danger m-1" title="Delete" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?');"><i class="bi bi-trash"></i></a>
-                                    </td>
+                                    <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'super_admin'): ?>
+                                        <td class="text-center">
+                                            <a href="edit_surat_keluar.php?id=<?= $surat['id_surat_keluar'] ?>" class="btn btn-sm btn-warning m-1" title="Edit"><i class="bi bi-pencil-square"></i></a>
+                                            <a href="javascript:void(0);"
+                                                class="btn btn-sm btn-danger"
+                                                title="Delete"
+                                                onclick="confirmDelete('hapus_surat_keluar.php?id=<?= $surat['id_surat_keluar'] ?>')">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </td>
+                                    <?php endif; ?>
                                 </tr>
                             <?php endforeach; ?>
                         <?php endif; ?>
